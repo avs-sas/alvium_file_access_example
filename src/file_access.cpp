@@ -1,5 +1,5 @@
 /* alvium file access example - Example tool for accessing user data files in Alvium CSI2 cameras
- * Copyright (C) 2024 Allied Vision Technologies Gmbh
+ * Copyright (C) 2024 Allied Vision Technologies GmbH
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
