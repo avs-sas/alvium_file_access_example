@@ -1,7 +1,7 @@
-# File access example for Allied Vision Alvium 1800C cameras
+# File access example for Allied Vision Alvium C cameras
 
 ## Usage 
-The example can be used to read and write user defined data to the camera. For each operation a separate executable is provided
+The example can be used to read and write user defined data to the camera. For each operation a separate executable is provided.
 
 ### Reading data
 ```shell
