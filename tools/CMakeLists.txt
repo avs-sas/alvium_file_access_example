@@ -1,8 +1,4 @@
 
-
-add_executable(xml_downloader xml_downloader.cpp)
-target_link_libraries(xml_downloader alvium_file_access)
-
 add_executable(file_access_read file_access_read.cpp)
 target_link_libraries(file_access_read alvium_file_access)
 
