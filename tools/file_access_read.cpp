@@ -5,12 +5,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -25,12 +25,12 @@
 
 #include <file_access.h>
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     int opt;
 
     std::string outputFile{};
-    
+
     while ((opt = getopt(argc, argv, "o:")) != -1) {
         switch (opt)
         {
@@ -72,9 +72,11 @@ int main(int argc, char **argv)
         std::fstream stream{outputFile, std::fstream::out | std::fstream::trunc | std::fstream::binary};
         stream.write(reinterpret_cast<char*>(buffer.get()), res);
     } else {
-        write(STDOUT_FILENO, buffer.get(), length);
+        ssize_t bytes_written = write(STDOUT_FILENO, buffer.get(), length);
+        if (bytes_written == -1) {
+            perror("write: fail");
+        }
     }
-    
 
-    return 0; 
+    return 0;
 }

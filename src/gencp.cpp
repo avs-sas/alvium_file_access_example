@@ -5,12 +5,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -100,7 +100,7 @@ struct GenCPPaket {
 static const fs::path v4l2_sysfs_base{"/sys/class/video4linux/"};
 
 template<class T,typename... Args>
-static inline std::unique_ptr<T> makeDynamicStructUniquePtr(size_t arrayLength, Args... args) 
+static inline std::unique_ptr<T> makeDynamicStructUniquePtr(size_t arrayLength, Args... args)
 {
     return std::unique_ptr<T>{new (malloc(sizeof(T) + arrayLength)) T(args...)};
 }
@@ -164,17 +164,17 @@ std::optional<AlviumGenCP> AlviumGenCP::open(int subdev)
     uint16_t tmp{};
     std::array<uint16_t, 3> addr;
 
-    if (readRawInternal(transferFd, 0x10, reinterpret_cast<uint8_t*>(&tmp), sizeof(tmp)) < 0) 
+    if (readRawInternal(transferFd, 0x10, reinterpret_cast<uint8_t*>(&tmp), sizeof(tmp)) < 0)
         return std::nullopt;
 
     addr[0] = be16toh(tmp);
 
-    if (readRawInternal(transferFd, addr[0] + 0xC, reinterpret_cast<uint8_t*>(&tmp), sizeof(tmp)) < 0) 
+    if (readRawInternal(transferFd, addr[0] + 0xC, reinterpret_cast<uint8_t*>(&tmp), sizeof(tmp)) < 0)
         return std::nullopt;
 
     addr[1] = be16toh(tmp);
 
-    if (readRawInternal(transferFd, addr[0] + 0x4, reinterpret_cast<uint8_t*>(&tmp), sizeof(tmp)) < 0) 
+    if (readRawInternal(transferFd, addr[0] + 0x4, reinterpret_cast<uint8_t*>(&tmp), sizeof(tmp)) < 0)
         return std::nullopt;
 
     addr[2] = be16toh(tmp);
@@ -183,7 +183,7 @@ std::optional<AlviumGenCP> AlviumGenCP::open(int subdev)
 }
 
 
-AlviumGenCP::AlviumGenCP(int transferFd, int subdev, std::array<uint16_t, 3> addr) 
+AlviumGenCP::AlviumGenCP(int transferFd, int subdev, std::array<uint16_t, 3> addr)
     : m_transferFd{transferFd}, m_subdev{subdev}, m_addr{addr}
 {
 
@@ -203,7 +203,7 @@ int AlviumGenCP::writeRaw(uint16_t addr, const uint8_t *buffer, size_t length) c
 
     if (::pwrite(m_transferFd, tmp.get(), tmpSize, 0) < 0)
         return errno;
-    
+
     return 0;
 }
 
@@ -229,13 +229,13 @@ int AlviumGenCP::writePaket(const void *paket, size_t length)
 
     uint16_t const tmp16 = htobe16(length);
     res = writeRaw(m_addr[0] + 0x20, reinterpret_cast<const uint8_t*>(&tmp16), sizeof(tmp16));
-    if (res < 0) 
+    if (res < 0)
         return res;
 
     tmp8 = 1;
 
     res = writeRaw(m_addr[0] + 0x18, &tmp8, sizeof(tmp8));
-    if (res < 0) 
+    if (res < 0)
         return res;
 
     do {
@@ -253,7 +253,7 @@ int AlviumGenCP::writePaket(const void *paket, size_t length)
     return 0;
 }
 
-int AlviumGenCP::readPaket(void *paket, size_t length) 
+int AlviumGenCP::readPaket(void *paket, size_t length)
 {
     uint8_t tmp8 = -1;
     int res = 0;
@@ -262,13 +262,13 @@ int AlviumGenCP::readPaket(void *paket, size_t length)
         res = readRaw(m_addr[0] + 0x1C, &tmp8, sizeof(tmp8));
         if (res < 0)
             return res;
-        
+
         if (tmp8 != 1) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         } else {
             break;
         }
-    } 
+    }
 
     uint16_t tmp16{};
 
@@ -294,7 +294,6 @@ int AlviumGenCP::readPaket(void *paket, size_t length)
 
     while (1) {
         res = readRaw(m_addr[0] + 0x1C, &tmp8, sizeof(tmp8));
-         
         if (tmp8 != 2) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
         } else {
@@ -322,9 +321,7 @@ int AlviumGenCP::writeRegister(uint64_t addr, const uint8_t *buffer, size_t leng
         auto const offset = currentChunk * maxWriteDataSize;
 
         auto const cmdLength = sizeof(GenCPPaket<GenCPWriteMemCmd>) + bytesToRead;
-           
         auto cmd = makeDynamicStructUniquePtr<GenCPPaket<GenCPWriteMemCmd>>(bytesToRead);
-        
         cmd->scd.register_address = addr + offset;
         memcpy(cmd->scd.data, buffer + offset, bytesToRead);
 
@@ -332,7 +329,7 @@ int AlviumGenCP::writeRegister(uint64_t addr, const uint8_t *buffer, size_t leng
         cmd->ccd.command_id = 0x0802;
         cmd->ccd.length = sizeof(cmd->scd) + bytesToRead;
         cmd->ccd.request_id = m_requestId;
-        
+
         cmd->calcCRC();
 
         int res = writePaket(cmd.get(), cmdLength);
@@ -352,14 +349,14 @@ int AlviumGenCP::writeRegister(uint64_t addr, const uint8_t *buffer, size_t leng
                 auto const pendingAck = reinterpret_cast<GenCPPendingAck*>(&ack.scd);
                 std::this_thread::sleep_for(std::chrono::milliseconds(pendingAck->timeout));
             }
-            
+
         } while (ack.ccd.command_id == 0x805);
 
-        
-        if(ack.ccd.command_id != 0x0803) 
+
+        if(ack.ccd.command_id != 0x0803)
             return -1;
-        
-        if(ack.ccd.status_code != 0x0) 
+
+        if(ack.ccd.status_code != 0x0)
             return -1;
 
         if (ack.ccd.request_id != m_requestId)
@@ -369,7 +366,6 @@ int AlviumGenCP::writeRegister(uint64_t addr, const uint8_t *buffer, size_t leng
         if (m_requestId == 0)
             m_requestId = 1;
 
-        
         currentChunk++;
         remaining -= bytesToRead;
     }
@@ -397,7 +393,6 @@ int AlviumGenCP::readRegister(uint64_t addr, uint8_t *buffer, size_t length)
         cmd.ccd.command_id = 0x0800;
         cmd.ccd.length = sizeof(cmd.scd);
         cmd.ccd.request_id = 0;
-        
         cmd.calcCRC();
 
         int res = writePaket(&cmd, sizeof(cmd));
@@ -412,12 +407,12 @@ int AlviumGenCP::readRegister(uint64_t addr, uint8_t *buffer, size_t length)
         if (res < 0)
             return res;
 
-        if(ack->ccd.command_id != 0x0801) 
+        if(ack->ccd.command_id != 0x0801)
             return -1;
-        
-        if(ack->ccd.status_code != 0x0) 
+
+        if(ack->ccd.status_code != 0x0)
             return -1;
-        
+
         memcpy(buffer + offset, &ack->scd[0], bytesToRead);
 
         currentChunk++;

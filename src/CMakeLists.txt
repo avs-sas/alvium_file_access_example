@@ -1,6 +1,6 @@
 
 
-set(GENCP_SRCS 
+set(GENCP_SRCS
     gencp.cpp
     file_access.cpp)
 
