@@ -72,7 +72,10 @@ int main(int argc, char **argv)
         std::fstream stream{outputFile, std::fstream::out | std::fstream::trunc | std::fstream::binary};
         stream.write(reinterpret_cast<char*>(buffer.get()), res);
     } else {
-        write(STDOUT_FILENO, buffer.get(), length);
+        ssize_t bytes_written = write(STDOUT_FILENO, buffer.get(), length);
+        if (bytes_written == -1) {
+            perror("write: fail");
+        }
     }
 
 
