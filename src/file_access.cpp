@@ -25,7 +25,7 @@
 enum class FileOperation : uint8_t {
     Open,
     Close,
-    Read, 
+    Read,
     Write,
     Delete,
 };
