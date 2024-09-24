@@ -5,12 +5,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -85,7 +85,6 @@ int executeFileOperation(AlviumGenCP &gencp, FileOperation operation, FileSelect
 
         val |= (uint64_t(*open_mode) << 16);
     }
-        
 
     return gencp.writeRegister(RegFileOperationExecuteAddr, reinterpret_cast<uint8_t*>(&val), sizeof(val));
 }
@@ -98,7 +97,6 @@ std::optional<File> File::open(AlviumGenCP &gencp, FileSelector selector, FileOp
     int res = readFileStatus(gencp, status);
     if (res < 0)
         return std::nullopt;
-   
 
     if (status.open) {
         res = executeFileOperation(gencp, FileOperation::Close, FileSelector(status.selector_open));
@@ -109,7 +107,7 @@ std::optional<File> File::open(AlviumGenCP &gencp, FileSelector selector, FileOp
     res = executeFileOperation(gencp, FileOperation::Open, selector, openMode);
     if (res < 0)
         return std::nullopt;
-    
+
     res = readFileStatus(gencp, status);
     if (res < 0)
         return std::nullopt;
@@ -132,7 +130,7 @@ File::File(AlviumGenCP &gencp, FileSelector selector, FileOpenMode openMode) : m
 
 File::File(const File &other) :  m_gencp{other.m_gencp}, m_selector{other.m_selector}, m_openMode{other.m_openMode}, m_refCount{other.m_refCount}{
     (*m_refCount)++;
-}   
+}
 
 File::~File()
 {
@@ -152,7 +150,6 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
         std::cerr << "File exists!!" << std::endl;
         return -1;
     }
-        
 
     auto const optlen = m_gencp.maxWritePacketPayloadSize();
     if (optlen < 0)
@@ -168,7 +165,6 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
         std::cerr << "Data too large!!" << std::endl;
         return -1;
     }
-        
 
     uint32_t const chunkSize = std::min(FileAccessBufferLength, uint64_t(optlen));
     uint32_t chunkIdx = 0;
@@ -177,7 +173,7 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
     while (remaining > 0) {
         uint32_t const bytesToRead = remaining > chunkSize ? chunkSize : remaining;
         uint32_t const offset = chunkIdx * chunkSize;
-        
+
         if (showProgress) {
             uint32_t const written = length - remaining;
             uint32_t const percent = (100 * written) / length;
@@ -186,7 +182,7 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
 
         int res = m_gencp.writeRegister(RegFileAccessLengthAddr, reinterpret_cast<const uint8_t*>(&bytesToRead), sizeof(bytesToRead));
         if (res < 0)
-            return res;       
+            return res;
 
         res = m_gencp.writeRegister(FileAccessBufferAddr, data + offset, bytesToRead);
         if (res < 0)
@@ -205,7 +201,6 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
         uint32_t const percent = (100 * written) / length;
         std::cout << "Written: " << percent << "% (" << written << "/" << length << ")" << std::endl;
     }
-        
 
     return length;
  }
@@ -232,10 +227,11 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
         uint32_t const bytesToRead = remaining > chunkSize ? chunkSize : remaining;
         uint32_t const offset = chunkIdx * chunkSize;
 
-        int res = m_gencp.writeRegister(RegFileAccessLengthAddr, reinterpret_cast<const uint8_t*>(&bytesToRead), sizeof(bytesToRead));
+        int res = m_gencp.writeRegister(RegFileAccessLengthAddr,
+                                        reinterpret_cast<const uint8_t*>(&bytesToRead),
+                                        sizeof(bytesToRead));
         if (res < 0)
-            return res;       
-        
+            return res;
 
         res = executeFileOperation(m_gencp, FileOperation::Read, m_selector);
         if (res < 0)
@@ -256,7 +252,8 @@ int File::write(const uint8_t *data, size_t length, bool showProgress)
  {
     uint32_t fileLength{};
 
-    int res = m_gencp.readRegister(RegFileSizeBaseAddr + RegFileSizeLength * uint64_t(m_selector), reinterpret_cast<uint8_t*>(&fileLength), sizeof(fileLength));
+    int res = m_gencp.readRegister(RegFileSizeBaseAddr + RegFileSizeLength * uint64_t(m_selector),
+                                   reinterpret_cast<uint8_t*>(&fileLength), sizeof(fileLength));
     if (res < 0)
         return res;
 
